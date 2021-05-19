@@ -101,21 +101,20 @@ app.get("/url/sentiment", (req, res) => {
 });
 
 app.get("/text/emotion", async (req, res) => {
+
+    //console.log(result_from_req['result']['keywords'][0]['sentiment']['label']);
+    return res.send({ "happy": "10", "sad": "90" });
+});
+
+app.get("/text/sentiment", async (req, res) => {
     let naturalLanguageUnderstanding = getNLUInstance();
     console.log(req.query.text);
 
     let result_from_req = await sendRequest('text', req.query.text);
     let outputJson = result_from_req;
     console.log("---" + outputJson.result.keywords[0].sentiment.label);
-
-
-
-    //console.log(result_from_req['result']['keywords'][0]['sentiment']['label']);
-    return res.send({ "happy": "10", "sad": "90" });
-});
-
-app.get("/text/sentiment", (req, res) => {
-    return res.send("text sentiment for " + req.query.text);
+    return res.send(outputJson.result.keywords[0].sentiment.label);
+    //return res.send("text sentiment for " + req.query.text);
 });
 
 let server = app.listen(8080, () => {
