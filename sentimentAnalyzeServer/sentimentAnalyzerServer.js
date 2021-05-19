@@ -1,5 +1,6 @@
 const express = require('express');
 const app = new express();
+const dotenv = require('dotenv')
 dotenv.config();
 
 
@@ -19,9 +20,64 @@ function getNLUInstance() {
         serviceUrl: api_url,
     });
 
-    return NaturalLanguageUnderstanding;
+    return naturalLanguageUnderstanding;
 }
 
+function returnRequest(type, input) {
+    let analyzeParams = {
+        'features': {
+            'entities': {
+                'emotion': true,
+                'sentiment': true,
+                'limit': 2,
+            },
+            'keywords': {
+                'emotion': true,
+                'sentiment': true,
+                'limit': 2,
+            },
+        },
+    };
+    if (type === "text") {
+        analyzeParams.text = input;
+    }
+    else if (type === "url") {
+        analyzeParams.url = input;
+    }
+
+    return analyzeParams;
+
+}
+
+async function sendRequest(type, input) {
+    let newReq = returnRequest(type, input);
+    let naturalLanguageUnderstanding = getNLUInstance();
+    console.log(newReq);
+    /*
+    try{
+        naturalLanguageUnderstanding.analyze(newReq)
+            .then(analysisResults => {
+                console.log(JSON.stringify(analysisResults, null, 2));
+                result = JSON.stringify(analysisResults, null, 2)
+                return result;
+            })
+            .catch(err => {
+                console.log('error:', err);
+                //result = JSON.stringify(analysisResults, null, 2)
+            });
+    }
+    finally{
+        if (result === "error"){
+            console.log('error');
+        }
+        return result;
+    }
+    */
+    let analysisResults = await naturalLanguageUnderstanding.analyze(newReq)
+
+    return analysisResults;
+
+}
 
 
 app.use(express.static('client'))
@@ -34,6 +90,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/url/emotion", (req, res) => {
+    let naturalLanguageUnderstanding = getNLUInstance();
+    analyzeParams = returnRequest(req.body);
 
     return res.send({ "happy": "90", "sad": "10" });
 });
@@ -42,7 +100,17 @@ app.get("/url/sentiment", (req, res) => {
     return res.send("url sentiment for " + req.query.url);
 });
 
-app.get("/text/emotion", (req, res) => {
+app.get("/text/emotion", async (req, res) => {
+    let naturalLanguageUnderstanding = getNLUInstance();
+    console.log(req.query.text);
+
+    let result_from_req = await sendRequest('text', req.query.text);
+    let outputJson = result_from_req;
+    console.log("---" + outputJson.result.keywords[0].sentiment.label);
+
+
+
+    //console.log(result_from_req['result']['keywords'][0]['sentiment']['label']);
     return res.send({ "happy": "10", "sad": "90" });
 });
 
