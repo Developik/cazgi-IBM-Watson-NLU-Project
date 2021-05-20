@@ -89,21 +89,55 @@ app.get("/", (req, res) => {
     res.render('index.html');
 });
 
-app.get("/url/emotion", (req, res) => {
+app.get("/url/emotion", async (req, res) => {
     let naturalLanguageUnderstanding = getNLUInstance();
-    analyzeParams = returnRequest(req.body);
+    console.log(req.query.url);
 
-    return res.send({ "happy": "90", "sad": "10" });
+    let result_from_req = await sendRequest('url', req.query.url);
+    let outputJson = result_from_req;
+
+    console.log("---" + JSON.stringify(outputJson.result.keywords[0].emotion));
+
+    let json_data = outputJson.result.keywords[0].emotion;
+    let result = [];
+
+    result = Object.keys(json_data).map((key) => [key, json_data[key]]);
+
+    console.log(result);
+
+    return res.send(result);
 });
 
-app.get("/url/sentiment", (req, res) => {
-    return res.send("url sentiment for " + req.query.url);
+app.get("/url/sentiment", async (req, res) => {
+    let naturalLanguageUnderstanding = getNLUInstance();
+    console.log(req.query.url);
+
+    let result_from_req = await sendRequest('url', req.query.url);
+    let outputJson = result_from_req;
+    console.log("---" + outputJson.result.keywords[0].sentiment.label);
+    return res.send(outputJson.result.keywords[0].sentiment.label);
+    //return res.send("text sentiment for " + req.query.text);
 });
 
 app.get("/text/emotion", async (req, res) => {
+    let naturalLanguageUnderstanding = getNLUInstance();
+    console.log(req.query.text);
 
+    let result_from_req = await sendRequest('text', req.query.text);
+    let outputJson = result_from_req;
+
+    console.log("---" + JSON.stringify(outputJson.result.keywords[0].emotion));
+
+    let json_data = outputJson.result.keywords[0].emotion;
+    let result = [];
+
+    result = Object.keys(json_data).map((key) => [key, json_data[key]]);
+
+    console.log(result);
+
+    return res.send(result);
     //console.log(result_from_req['result']['keywords'][0]['sentiment']['label']);
-    return res.send({ "happy": "10", "sad": "90" });
+    //return res.send({ "happy": "10", "sad": "90" });
 });
 
 app.get("/text/sentiment", async (req, res) => {
